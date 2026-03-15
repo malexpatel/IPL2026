@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<title>IPL Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+body{
+background:#f4f6f9;
+}
+
+.navbar-brand{
+font-weight:bold;
+}
+
+.match-card{
+margin-top:30px;
+}
+
+.team-logo{
+height:40px;
+margin-right:10px;
+}
+
+.score-box{
+background:#f8f9fa;
+padding:10px;
+border-radius:6px;
+margin-bottom:5px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- NAVBAR -->
+
+<nav class="navbar navbar-dark bg-dark">
+
+<div class="container-fluid">
+
+<span class="navbar-brand" id="seriesTitle">
+Cricket Series
+</span>
+
+<select id="matchDropdown" class="form-select w-auto">
+<option disabled selected>Select Match</option>
+</select>
+
+</div>
+
+</nav>
+
+
+
+<div class="container">
+
+
+<div class="card shadow match-card">
+
+<div class="card-header bg-primary text-white">
+<h5 class="mb-0">Match Information</h5>
+</div>
+
+<div class="card-body">
+
+<h4 id="matchName"></h4>
+
+<p><strong>Status:</strong> <span id="matchStatus"></span></p>
+
+<p><strong>Venue:</strong> <span id="matchVenue"></span></p>
+
+<p><strong>Date:</strong> <span id="matchDate"></span></p>
+
+<hr>
+
+<h5>Teams</h5>
+
+<div id="teamsContainer"></div>
+
+<hr>
+
+<h5>Score</h5>
+
+<div id="scoreContainer"></div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<script>
+
+
+const apiBase = "http://mydemoapi.runasp.net/api/CricketMatch";
+
+
+loadSeries();
+loadMatches();
+
+
+
+function loadSeries(){
+
+fetch(apiBase + "/series")
+.then(response => response.json())
+.then(data => {
+
+if(data.length > 0)
+{
+document.getElementById("seriesTitle").innerText = data[0].name;
+}
+
+});
+
+}
+
+
+
+function loadMatches(){
+
+fetch(apiBase)
+.then(response => response.json())
+.then(matches => {
+
+let dropdown = document.getElementById("matchDropdown");
+
+matches.forEach(match => {
+
+let option = document.createElement("option");
+
+let date = new Date(match.matchDate).toLocaleDateString();
+
+option.value = match.id;
+
+option.text = date + " - " + match.name;
+
+dropdown.appendChild(option);
+
+});
+
+});
+
+}
+
+
+
+document.getElementById("matchDropdown").addEventListener("change",function(){
+
+let matchId = this.value;
+
+if(!matchId) return;
+
+loadMatchInfo(matchId);
+
+});
+
+
+
+function loadMatchInfo(matchId){
+
+fetch(apiBase + "/live-match/" + matchId)
+.then(response => response.json())
+.then(data => {
+
+let match = data.data;
+
+
+document.getElementById("matchName").innerText = match.name;
+
+document.getElementById("matchStatus").innerText = match.status;
+
+document.getElementById("matchVenue").innerText = match.venue;
+
+document.getElementById("matchDate").innerText = match.date;
+
+
+
+let teamsHTML = "";
+
+match.teamInfo.forEach(team => {
+
+teamsHTML += `
+<div class="mb-2">
+<img src="${team.img}" class="team-logo">
+${team.name} (${team.shortname})
+</div>
+`;
+
+});
+
+document.getElementById("teamsContainer").innerHTML = teamsHTML;
+
+
+
+let scoreHTML = "";
+
+if(match.score){
+
+match.score.forEach(score => {
+
+scoreHTML += `
+<div class="score-box">
+${score.inning} : ${score.r}/${score.w} (${score.o} overs)
+</div>
+`;
+
+});
+
+}
+
+document.getElementById("scoreContainer").innerHTML = scoreHTML;
+
+});
+
+}
+
+
+
+</script>
+
+</body>
+</html>
