@@ -4,6 +4,8 @@
 <head>
 
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>IPL Dashboard</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,47 +13,91 @@
 <style>
 
 body{
-background:#f4f6f9;
+background:#f2f4f7;
+font-family:system-ui;
 }
 
+/* NAVBAR */
+
 .navbar-brand{
-font-weight:bold;
+font-weight:700;
+font-size:20px;
 }
+
+/* MATCH CARD */
 
 .match-card{
 margin-top:30px;
+border-radius:12px;
+}
+
+/* TEAM BLOCK */
+
+.team-box{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:10px;
 }
 
 .team-logo{
-height:40px;
-margin-right:10px;
+height:50px;
 }
 
-.score-box{
-background:#f8f9fa;
+.vs-text{
+font-weight:bold;
+font-size:18px;
+color:#888;
+}
+
+/* STATUS BADGE */
+
+.status-badge{
+font-size:14px;
+}
+
+/* SCORE BOX */
+
+.score-card{
+background:#fafafa;
+border-radius:8px;
 padding:10px;
-border-radius:6px;
-margin-bottom:5px;
+margin-bottom:6px;
+}
+
+/* MOBILE IMPROVEMENTS */
+
+@media(max-width:768px){
+
+.team-logo{
+height:40px;
+}
+
+.navbar-brand{
+font-size:16px;
+}
+
 }
 
 </style>
 
 </head>
 
+
 <body>
 
 
 <!-- NAVBAR -->
 
-<nav class="navbar navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
 
-<div class="container-fluid">
+<div class="container">
 
-<span class="navbar-brand" id="seriesTitle">
+<a class="navbar-brand" id="seriesTitle">
 Cricket Series
-</span>
+</a>
 
-<select id="matchDropdown" class="form-select w-auto">
+<select id="matchDropdown" class="form-select w-auto ms-auto">
 <option disabled selected>Select Match</option>
 </select>
 
@@ -63,34 +109,98 @@ Cricket Series
 
 <div class="container">
 
-
 <div class="card shadow match-card">
-
-<div class="card-header bg-primary text-white">
-<h5 class="mb-0">Match Information</h5>
-</div>
 
 <div class="card-body">
 
+
+<!-- MATCH TITLE -->
+
+<div class="text-center mb-3">
+
 <h4 id="matchName"></h4>
 
-<p><strong>Status:</strong> <span id="matchStatus"></span></p>
+<span class="badge bg-success status-badge" id="matchStatus"></span>
 
-<p><strong>Venue:</strong> <span id="matchVenue"></span></p>
+</div>
 
-<p><strong>Date:</strong> <span id="matchDate"></span></p>
+
+
+<!-- TEAM VS TEAM -->
+
+<div class="row text-center align-items-center mb-4">
+
+<div class="col-5 team-box">
+
+<img id="team1Logo" class="team-logo">
+
+<div>
+<div id="team1Name"></div>
+<div id="team1Short"></div>
+</div>
+
+</div>
+
+
+<div class="col-2 vs-text">
+VS
+</div>
+
+
+<div class="col-5 team-box">
+
+<img id="team2Logo" class="team-logo">
+
+<div>
+<div id="team2Name"></div>
+<div id="team2Short"></div>
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- MATCH INFO -->
+
+<div class="row text-center mb-3">
+
+<div class="col-md-4 col-12 mb-2">
+
+<strong>Venue</strong>
+<div id="matchVenue"></div>
+
+</div>
+
+<div class="col-md-4 col-12 mb-2">
+
+<strong>Date</strong>
+<div id="matchDate"></div>
+
+</div>
+
+<div class="col-md-4 col-12 mb-2">
+
+<strong>Match Type</strong>
+<div id="matchType"></div>
+
+</div>
+
+</div>
+
+
 
 <hr>
 
-<h5>Teams</h5>
 
-<div id="teamsContainer"></div>
 
-<hr>
+<!-- SCORE -->
 
 <h5>Score</h5>
 
 <div id="scoreContainer"></div>
+
 
 </div>
 
@@ -103,7 +213,7 @@ Cricket Series
 <script>
 
 
-const apiBase = "http://mydemoapi.runasp.net/api/CricketMatch";
+const apiBase = "https://mydemoapi.runasp.net/api/CricketMatch";
 
 
 loadSeries();
@@ -114,12 +224,15 @@ loadMatches();
 function loadSeries(){
 
 fetch(apiBase + "/series")
-.then(response => response.json())
-.then(data => {
 
-if(data.length > 0)
-{
+.then(res=>res.json())
+
+.then(data=>{
+
+if(data.length>0){
+
 document.getElementById("seriesTitle").innerText = data[0].name;
+
 }
 
 });
@@ -131,12 +244,14 @@ document.getElementById("seriesTitle").innerText = data[0].name;
 function loadMatches(){
 
 fetch(apiBase)
-.then(response => response.json())
-.then(matches => {
+
+.then(res=>res.json())
+
+.then(matches=>{
 
 let dropdown = document.getElementById("matchDropdown");
 
-matches.forEach(match => {
+matches.forEach(match=>{
 
 let option = document.createElement("option");
 
@@ -158,21 +273,23 @@ dropdown.appendChild(option);
 
 document.getElementById("matchDropdown").addEventListener("change",function(){
 
-let matchId = this.value;
+let id = this.value;
 
-if(!matchId) return;
+if(!id) return;
 
-loadMatchInfo(matchId);
+loadMatch(id);
 
 });
 
 
 
-function loadMatchInfo(matchId){
+function loadMatch(id){
 
-fetch(apiBase + "/live-match/" + matchId)
-.then(response => response.json())
-.then(data => {
+fetch(apiBase + "/live-match/" + id)
+
+.then(res=>res.json())
+
+.then(data=>{
 
 let match = data.data;
 
@@ -185,34 +302,40 @@ document.getElementById("matchVenue").innerText = match.venue;
 
 document.getElementById("matchDate").innerText = match.date;
 
-
-
-let teamsHTML = "";
-
-match.teamInfo.forEach(team => {
-
-teamsHTML += `
-<div class="mb-2">
-<img src="${team.img}" class="team-logo">
-${team.name} (${team.shortname})
-</div>
-`;
-
-});
-
-document.getElementById("teamsContainer").innerHTML = teamsHTML;
+document.getElementById("matchType").innerText = match.matchType;
 
 
 
-let scoreHTML = "";
+/* TEAM 1 */
+
+document.getElementById("team1Name").innerText = match.teamInfo[0].name;
+
+document.getElementById("team1Short").innerText = match.teamInfo[0].shortname;
+
+document.getElementById("team1Logo").src = match.teamInfo[0].img;
+
+
+/* TEAM 2 */
+
+document.getElementById("team2Name").innerText = match.teamInfo[1].name;
+
+document.getElementById("team2Short").innerText = match.teamInfo[1].shortname;
+
+document.getElementById("team2Logo").src = match.teamInfo[1].img;
+
+
+
+/* SCORE */
+
+let html="";
 
 if(match.score){
 
-match.score.forEach(score => {
+match.score.forEach(s=>{
 
-scoreHTML += `
-<div class="score-box">
-${score.inning} : ${score.r}/${score.w} (${score.o} overs)
+html+=`
+<div class="score-card">
+${s.inning} : <strong>${s.r}/${s.w}</strong> (${s.o} overs)
 </div>
 `;
 
@@ -220,12 +343,11 @@ ${score.inning} : ${score.r}/${score.w} (${score.o} overs)
 
 }
 
-document.getElementById("scoreContainer").innerHTML = scoreHTML;
+document.getElementById("scoreContainer").innerHTML = html;
 
 });
 
 }
-
 
 
 </script>
