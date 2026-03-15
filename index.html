@@ -50,13 +50,7 @@ font-size:18px;
 color:#888;
 }
 
-/* STATUS BADGE */
-
-.status-badge{
-font-size:14px;
-}
-
-/* SCORE BOX */
+/* SCORE */
 
 .score-card{
 background:#fafafa;
@@ -65,7 +59,17 @@ padding:10px;
 margin-bottom:6px;
 }
 
-/* MOBILE IMPROVEMENTS */
+/* PLAYER CARD */
+
+.player-card{
+background:white;
+border-radius:10px;
+padding:10px;
+text-align:center;
+box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* MOBILE */
 
 @media(max-width:768px){
 
@@ -120,13 +124,13 @@ Cricket Series
 
 <h4 id="matchName"></h4>
 
-<span class="badge bg-success status-badge" id="matchStatus"></span>
+<span class="badge bg-success" id="matchStatus"></span>
 
 </div>
 
 
 
-<!-- TEAM VS TEAM -->
+<!-- TEAM VS -->
 
 <div class="row text-center align-items-center mb-4">
 
@@ -206,20 +210,46 @@ VS
 
 </div>
 
+
+
+<!-- TEAMS & PLAYERS -->
+
+<div class="card shadow mt-4">
+
+<div class="card-header bg-dark text-white">
+Teams & Players
+</div>
+
+<div class="card-body">
+
+<select id="teamDropdown" class="form-select mb-3">
+<option disabled selected>Select Team</option>
+</select>
+
+<div id="playersContainer" class="row"></div>
+
+</div>
+
+</div>
+
+
 </div>
 
 
 
 <script>
 
-
 const apiBase = "https://mydemoapi.runasp.net/api/CricketMatch";
+const seriesId = "87c62aac-bc3c-4738-ab93-19da0690488f";
 
 
 loadSeries();
 loadMatches();
+loadTeams();
 
 
+
+/* SERIES */
 
 function loadSeries(){
 
@@ -230,9 +260,7 @@ fetch(apiBase + "/series")
 .then(data=>{
 
 if(data.length>0){
-
 document.getElementById("seriesTitle").innerText = data[0].name;
-
 }
 
 });
@@ -241,6 +269,8 @@ document.getElementById("seriesTitle").innerText = data[0].name;
 
 
 
+/* MATCH LIST */
+
 function loadMatches(){
 
 fetch(apiBase)
@@ -248,6 +278,8 @@ fetch(apiBase)
 .then(res=>res.json())
 
 .then(matches=>{
+
+matches.sort((a,b)=> new Date(a.matchDate) - new Date(b.matchDate));
 
 let dropdown = document.getElementById("matchDropdown");
 
@@ -258,7 +290,6 @@ let option = document.createElement("option");
 let date = new Date(match.matchDate).toLocaleDateString();
 
 option.value = match.id;
-
 option.text = date + " - " + match.name;
 
 dropdown.appendChild(option);
@@ -283,6 +314,8 @@ loadMatch(id);
 
 
 
+/* MATCH DETAILS */
+
 function loadMatch(id){
 
 fetch(apiBase + "/live-match/" + id)
@@ -293,34 +326,24 @@ fetch(apiBase + "/live-match/" + id)
 
 let match = data.data;
 
-
 document.getElementById("matchName").innerText = match.name;
-
 document.getElementById("matchStatus").innerText = match.status;
-
 document.getElementById("matchVenue").innerText = match.venue;
-
 document.getElementById("matchDate").innerText = match.date;
-
 document.getElementById("matchType").innerText = match.matchType;
-
 
 
 /* TEAM 1 */
 
 document.getElementById("team1Name").innerText = match.teamInfo[0].name;
-
 document.getElementById("team1Short").innerText = match.teamInfo[0].shortname;
-
 document.getElementById("team1Logo").src = match.teamInfo[0].img;
 
 
 /* TEAM 2 */
 
 document.getElementById("team2Name").innerText = match.teamInfo[1].name;
-
 document.getElementById("team2Short").innerText = match.teamInfo[1].shortname;
-
 document.getElementById("team2Logo").src = match.teamInfo[1].img;
 
 
@@ -349,6 +372,71 @@ document.getElementById("scoreContainer").innerHTML = html;
 
 }
 
+
+
+/* TEAMS */
+
+function loadTeams(){
+
+fetch(apiBase + "/series-squad/" + seriesId)
+
+.then(res=>res.json())
+
+.then(data=>{
+
+let dropdown = document.getElementById("teamDropdown");
+
+window.teamData = data.data;
+
+data.data.forEach(team=>{
+
+let option = document.createElement("option");
+
+option.value = team.teamName;
+option.text = team.teamName;
+
+dropdown.appendChild(option);
+
+});
+
+});
+
+}
+
+
+
+/* PLAYERS */
+
+document.getElementById("teamDropdown").addEventListener("change",function(){
+
+let teamName = this.value;
+
+let team = window.teamData.find(t=>t.teamName === teamName);
+
+let container = document.getElementById("playersContainer");
+
+container.innerHTML="";
+
+team.players.forEach(player=>{
+
+container.innerHTML += `
+
+<div class="col-lg-2 col-md-3 col-6 mb-3">
+
+<div class="player-card">
+
+<h6>${player.name}</h6>
+<small>${player.role}</small>
+
+</div>
+
+</div>
+
+`;
+
+});
+
+});
 
 </script>
 
